@@ -1,0 +1,457 @@
+@extends('frontend.layouts.main_header')
+
+@section('content')
+
+<style>
+    .custom-list ul {
+        list-style-type: none;
+        padding: 0;
+    }
+
+    .custom-list li {
+        position: relative;
+        padding-left: 25px;
+        margin-bottom: 10px;
+    }
+
+    .custom-list li::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 3px;
+        display: inline-block;
+        width: 15px;
+        height: 15px;
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-image: url('{{ asset('/assets/frontend/images/p1.png') }}');
+    }
+
+    li::marker {
+        content: none;
+    }
+</style>
+
+
+<!-- page wrapper -->
+<div class="page-wrapper pbmit-bg-color-light">
+
+    <!-- Header Main Area -->
+    @include('frontend.layouts.main_menu')
+    <!-- Header Main Area End Here -->
+    <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper">
+        <div class="container">
+            <div class="pbmit-title-bar-content">
+                <div class="pbmit-title-bar-content-inner">
+                    <div class="pbmit-tbar">
+                        <div class="pbmit-tbar-inner container">
+                            <h1 class="pbmit-tbar-title">Departments</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Title Bar End-->
+    <!-- page content -->
+    <div class="page-content">
+
+        <section class="site_content blog-details">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-9 pr-15 blog-right-col">
+                        <div class="pbmit-team-single-info">
+                            <div class="row">
+                                <div class="col-sm-12 col-md-3">
+                                    <div class="pbmit-sticky-cl">
+                                        <div class="pbmit-team-left-inner">
+                                            <div class="pbmit-featured-wrapper">
+                                                <img src="{{ asset('/assets/backend/uploads/Officelogo/' . $officelists->logo) }}" class="img-fluid w-100" alt="" style="border-radius: 30px 30px 0 0;">
+                                            </div>
+                                            <div class="pbmit-team-detail">
+                                                <div class="pbmit-team-detail-inner">
+                                                    <div class="pbmit-team-summary">
+                                                        <h2 class="pbmit-team-title text-center">{{$officelists->office_sub[0]->title}}</h2>
+                                                    </div>
+                                                    <br>
+                                                    <a href="https://arogyakeralam.gov.in/" class="w-link"> {{$officelists->websiteurl}}</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 col-md-9 bg-white br-30">
+                                    <article class="main-article px-2 py-3">
+                                        <div class="post blog-classic">
+                                            <div class="pbmit-heading animation-style1">
+                                                <h3 class="mb-2 {{ isset($sessionbil) && $sessionbil == 1 ? 'pbmit-title' : 'pbmit-title1' }}" style="font-weight: 500;font-size: 30px;">{{$officelists->office_sub[0]->title}}</h3>
+                                            </div>
+                                            <div class="pbmit-blog-classic-inner">
+
+                                                <div class="tabx mt-3">
+                                                    <div class="tabs-container">
+                                                        <button class="scroll-btn scroll-left">&#9665;</button>
+                                                        <ul class="nav nav-tabs" id="myTab" role="tablist">
+
+                                                            <li class="nav-item me-1" role="presentation">
+                                                                <button class="nav-link active ms-0" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" value="0">Home</button>
+                                                            </li>
+
+                                                            @foreach($submenus as $submenu)
+                                                            @foreach($submenu->dep_submenu as $dep_submenu)
+                                                            <li class="nav-item me-1" role="presentation">
+                                                                <button class="nav-link ms-0" id="home-tab{{$submenu->id}}" data-bs-toggle="tab" data-bs-target="#data{{$submenu->id}}" type="button" role="tab" value="{{$submenu->id}}">{{$dep_submenu->title}}</button>
+                                                            </li>
+                                                            @endforeach
+                                                            @endforeach
+                                                            <!-- <li class="nav-item" role="presentation">
+                                                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#practice" type="button" role="tab" value="2">Best Practices</button>
+                                                            </li>
+                                                            <li class="nav-item" role="presentation">
+                                                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#innovation" type="button" role="tab" value="3">Innovative</button>
+                                                            </li>
+                                                            <li class="nav-item" role="presentation">
+                                                                <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#infra" type="button" role="tab" value="4">Infrastructure</button>
+                                                            </li>
+                                                            <li class="nav-item" role="presentation">
+                                                                <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#achive" type="button" role="tab" value="5">Achievements</button>
+                                                            </li> -->
+                                                        </ul>
+                                                        <button class="scroll-btn scroll-right">&#9655;</button>
+                                                    </div>
+                                                    <div class="tab-content mt-3" id="myTabContent">
+                                                        <div class="tab-pane fade show active" id="home" role="tabpanel">
+                                                            <div class="pbmit-entry-content">
+                                                                <div class="square">
+                                                                    <img src="images/ui.png" class="img-fluid w-100" alt="">
+
+                                                                    @if(isset($officelists->officedetail) && $officelists->officedetail->isNotEmpty())
+                                                                    @foreach($officelists->officedetail as $officedetail)
+                                                                    @foreach($officedetail->officedetailsub as $officedetailsub)
+
+                                                                    {{-- Show Mission if available --}}
+                                                                    @if(!empty(trim($officedetailsub->mission)))
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-12 mt-3">
+                                                                            <div class="pbmit-ihbox-style-24">
+                                                                                <div class="pbmit-ihbox-box d-flex p-3">
+                                                                                    <div class="pbmit-ihbox-icon me-2">
+                                                                                        <div class="pbmit-ihbox-icon-wrapper tg pbmit-icon-type-icon">
+                                                                                            <img src="{{ asset('/assets/frontend/images/mission.png') }}" alt="">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="pbmit-ihbox-contents">
+                                                                                        <h2 class="pbmit-element-title">Mission</h2>
+                                                                                        <div class="pbmit-heading-desc custom-list">
+                                                                                            {!! $officedetailsub->mission !!}
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    @endif
+
+                                                                    {{-- Show Vision if available --}}
+                                                                    @if(!empty(trim($officedetailsub->vision)))
+                                                                    <div class="row mb-3">
+                                                                        <div class="col-md-12 mt-3">
+                                                                            <div class="pbmit-ihbox-style-24">
+                                                                                <div class="pbmit-ihbox-box d-flex p-3">
+                                                                                    <div class="pbmit-ihbox-icon me-2">
+                                                                                        <div class="pbmit-ihbox-icon-wrapper tg pbmit-icon-type-icon">
+                                                                                            <img src="{{ asset('/assets/frontend/images/vision.png') }}" alt="">
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <div class="pbmit-ihbox-contents">
+                                                                                        <h2 class="pbmit-element-title">Vision</h2>
+                                                                                        <div class="pbmit-heading-desc custom-list">
+                                                                                            {!! $officedetailsub->vision !!}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                    @endif
+
+                                                                    {{-- Always Show Description --}}
+                                                                    @if(!empty(trim($officedetailsub->description)))
+                                                                    <p class="pbmit-firstletter custom-list" style="text-align: justify;">
+                                                                        {!! strip_tags($officedetailsub->description, '<font>
+                                                                            <p class="pbmit-firstletter"><a>
+                                                                                    <ul>
+                                                                                        <li>') !!}
+                                                                            </p>
+                                                                            @endif
+
+                                                                            @endforeach
+                                                                            @endforeach
+                                                                            @endif
+                                                                </div>
+                                                            </div>
+
+                                                        </div>
+
+                                                        <div class="tab-pane fade" id="data{{$submenu->id}}" role="tabpanel">
+                                                            <div class="pbmit-entry-content">
+                                                                <div class="square">
+                                                          
+                                                                    @foreach($ArticleDepartments as $ArticleDepartment)
+
+                                                                    @if($ArticleDepartment->articletype_id == $ArticleDepartment->submenu)
+                                                                    @foreach($ArticleDepartment->articleval_sub as $articleval_sub)
+                                                                    @php $FormatTitle = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $articleval_sub->title)) @endphp
+
+                                                                    <p class="pbmit-firstletter" style="text-align: justify;">
+                                                                    <aside class="widget widget-recent-post">
+
+                                                                        <ul class="recent-post-list">
+                                                                            <li class="recent-post-list-li">
+                                                                                <a class="recent-post-thum" href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">
+                                                                                    <img src="{{asset('/assets/backend/uploads/articles/'.$articleval_sub->file)}}" class="img-fluid" alt="">
+                                                                                </a>
+                                                                                <div class="pbmit-rpw-content">
+                                                                                    <span class="pbmit-rpw-date">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{ \Carbon\Carbon::parse($ArticleDepartment->created_at)->format('F d, Y') }}</a>
+                                                                                    </span>
+
+                                                                                    <span class="pbmit-rpw-title">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{$articleval_sub->title}}</a>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </li>
+                                                                        </ul>
+
+                                                                        <!-- Medical Futurist is one of the best online resources for learning about technology in the medical sphere. There’s a real sense skepticism uis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde in each post from medical doctor and geneticist Mesko, a blog covering new technologies targeted toward numerous specialties. -->
+                                                                        </p>
+
+                                                                        @endforeach
+                                                                        @endif
+                                                                        @endforeach
+                                                                        <!-- <p>If you run an internet search for medical blogs, you’ll come across hundreds of results. And figuring out which sources are reputable can take a lot of time. To help ease the process, we compiled this list of 55 of our favorite medical blogs everyone in the field can learn from Whether you’re, you’ve been a physician for years, or you simply want to know how make considering medical school well-informed decisions about your own health, there’s something on this list for everyone. Keep this list of medical blogs handy and the answers to your medical away.</p>                                                      -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+
+
+                                                        <!-- /////////////// -->
+
+                                                        <div class="tab-pane fade" id="innovation" role="tabpanel">
+                                                            <div class="pbmit-entry-content">
+                                                                <div class="square">
+
+                                                                    @foreach($ArticleDepartments as $ArticleDepartment)
+                                                                    @if($ArticleDepartment->articletype_id == 9)
+                                                                    @foreach($ArticleDepartment->articleval_sub as $articleval_sub)
+                                                                    @php $FormatTitle = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $articleval_sub->title)) @endphp
+
+                                                                    <p class="pbmit-firstletter" style="text-align: justify;">
+                                                                    <aside class="widget widget-recent-post">
+
+                                                                        <ul class="recent-post-list">
+                                                                            <li class="recent-post-list-li">
+                                                                                <a class="recent-post-thum" href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">
+                                                                                    <img src="{{asset('/assets/backend/uploads/articles/'.$articleval_sub->file)}}" class="img-fluid" alt="">
+                                                                                </a>
+                                                                                <div class="pbmit-rpw-content">
+                                                                                    <span class="pbmit-rpw-date">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{ \Carbon\Carbon::parse($ArticleDepartment->created_at)->format('F d, Y') }}</a>
+                                                                                    </span>
+                                                                                    <span class="pbmit-rpw-title">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{$articleval_sub->title}}</a>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </li>
+                                                                        </ul>
+
+                                                                        <!-- Medical Futurist is one of the best online resources for learning about technology in the medical sphere. There’s a real sense skepticism uis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde in each post from medical doctor and geneticist Mesko, a blog covering new technologies targeted toward numerous specialties. -->
+                                                                        </p>
+
+                                                                        @endforeach
+                                                                        @endif
+                                                                        @endforeach
+                                                                        <!-- <p>If you run an internet search for medical blogs, you’ll come across hundreds of results. And figuring out which sources are reputable can take a lot of time. To help ease the process, we compiled this list of 55 of our favorite medical blogs everyone in the field can learn from Whether you’re, you’ve been a physician for years, or you simply want to know how make considering medical school well-informed decisions about your own health, there’s something on this list for everyone. Keep this list of medical blogs handy and the answers to your medical away.</p>                                                      -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="tab-pane fade" id="infra" role="tabpanel">
+                                                            <div class="pbmit-entry-content">
+                                                                <div class="square">
+
+                                                                    @foreach($ArticleDepartments as $ArticleDepartment)
+                                                                    @if($ArticleDepartment->articletype_id == 10)
+                                                                    @foreach($ArticleDepartment->articleval_sub as $articleval_sub)
+                                                                    @php $FormatTitle = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $articleval_sub->title)) @endphp
+
+                                                                    <p class="pbmit-firstletter" style="text-align: justify;">
+                                                                    <aside class="widget widget-recent-post">
+
+                                                                        <ul class="recent-post-list">
+                                                                            <li class="recent-post-list-li">
+                                                                                <a class="recent-post-thum" href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">
+                                                                                    <img src="{{asset('/assets/backend/uploads/articles/'.$articleval_sub->file)}}" class="img-fluid" alt="">
+                                                                                </a>
+                                                                                <div class="pbmit-rpw-content">
+                                                                                    <span class="pbmit-rpw-date">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{ \Carbon\Carbon::parse($ArticleDepartment->created_at)->format('F d, Y') }}</a>
+                                                                                    </span>
+                                                                                    <span class="pbmit-rpw-title">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{$articleval_sub->title}}</a>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </li>
+                                                                        </ul>
+
+                                                                        <!-- Medical Futurist is one of the best online resources for learning about technology in the medical sphere. There’s a real sense skepticism uis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde in each post from medical doctor and geneticist Mesko, a blog covering new technologies targeted toward numerous specialties. -->
+                                                                        </p>
+
+                                                                        @endforeach
+                                                                        @endif
+                                                                        @endforeach
+                                                                        <!-- <p>If you run an internet search for medical blogs, you’ll come across hundreds of results. And figuring out which sources are reputable can take a lot of time. To help ease the process, we compiled this list of 55 of our favorite medical blogs everyone in the field can learn from Whether you’re, you’ve been a physician for years, or you simply want to know how make considering medical school well-informed decisions about your own health, there’s something on this list for everyone. Keep this list of medical blogs handy and the answers to your medical away.</p>                                                      -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="tab-pane fade" id="achive" role="tabpanel">
+                                                            <div class="pbmit-entry-content">
+                                                                <div class="square">
+
+                                                                    @foreach($ArticleDepartments as $ArticleDepartment)
+                                                                    @if($ArticleDepartment->articletype_id == 11)
+
+                                                                    @foreach($ArticleDepartment->articleval_sub as $articleval_sub)
+                                                                    @php $FormatTitle = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $articleval_sub->title)) @endphp
+
+                                                                    <p class="pbmit-firstletter" style="text-align: justify;">
+                                                                    <aside class="widget widget-recent-post">
+
+                                                                        <ul class="recent-post-list">
+                                                                            <li class="recent-post-list-li">
+                                                                                <a class="recent-post-thum" href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">
+                                                                                    <img src="{{asset('/assets/backend/uploads/articles/'.$articleval_sub->file)}}" class="img-fluid" alt="">
+                                                                                </a>
+                                                                                <div class="pbmit-rpw-content">
+                                                                                    <span class="pbmit-rpw-date">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{ \Carbon\Carbon::parse($ArticleDepartment->created_at)->format('F d, Y') }}</a>
+                                                                                    </span>
+                                                                                    <span class="pbmit-rpw-title">
+                                                                                        <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}l">{{$articleval_sub->title}}</a>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </li>
+                                                                        </ul>
+
+                                                                        <!-- Medical Futurist is one of the best online resources for learning about technology in the medical sphere. There’s a real sense skepticism uis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde in each post from medical doctor and geneticist Mesko, a blog covering new technologies targeted toward numerous specialties. -->
+                                                                        </p>
+
+                                                                        @endforeach
+                                                                        @endif
+                                                                        @endforeach
+                                                                        <!-- <p>If you run an internet search for medical blogs, you’ll come across hundreds of results. And figuring out which sources are reputable can take a lot of time. To help ease the process, we compiled this list of 55 of our favorite medical blogs everyone in the field can learn from Whether you’re, you’ve been a physician for years, or you simply want to know how make considering medical school well-informed decisions about your own health, there’s something on this list for everyone. Keep this list of medical blogs handy and the answers to your medical away.</p>                                                      -->
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+
+                                    </article>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <style>
+
+                    </style>
+
+                    <div class="col-md-12 col-lg-3 blog-left-col">
+                        <aside class="widget">
+                            <div class="textwidget">
+                                <div class="download">
+                                    <div class="item-download">
+                                        @isset($officelists->officedetail[0]->websiteurl)
+                                        @php $weburl = $officelists->officedetail[0]->websiteurl;
+                                        $parsedUrl = explode('/', $weburl);
+                                        $domain = end($parsedUrl);
+                                        @endphp
+                                        @else
+                                        @php $weburl = ''; @endphp
+                                        @endisset
+
+
+                                        <a href="//{{ $weburl  }}" target="_blank" rel="noopener noreferrer">
+
+                                            <span class="pbmit-download-content">
+                                                Go to Website
+                                            </span>
+                                            <span class="pbmit-download-item">
+                                                <img src="{{asset('/assets/frontend/images/web-developer.gif')}} " width="40" height="40" alt="">
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                        <aside class="sidebar">
+                            <aside class="widget widget-recent-post">
+                                <h2 class="widget-title">Recent News</h2>
+                                <ul class="recent-post-list">
+                                    @php $count = 0; @endphp
+
+                                    @foreach($ArticleDepartments as $ArticleDepartment)
+
+                                    @foreach($ArticleDepartment->articleval_sub as $articleval_sub)
+                                    @php $FormatTitle = preg_replace('/[^A-Za-z0-9_]/', '', str_replace(' ', '_', $articleval_sub->title)) @endphp
+                                    @if($count >= 5) @break @endif
+
+                                    <li class="recent-post-list-li">
+                                        <a class="recent-post-thum" href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">
+                                            <img src="{{asset('/assets/backend/uploads/articles/'.$articleval_sub->file)}}" class="img-fluid" alt="">
+                                        </a>
+                                        <div class="pbmit-rpw-content">
+                                            <span class="pbmit-rpw-date">
+                                                <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{ \Carbon\Carbon::parse($ArticleDepartment->created_at)->format('F d, Y') }}
+                                                </a>
+                                            </span>
+                                            <span class="pbmit-rpw-title">
+                                                <a href="{{ route('main.articledetail', ['title' => $FormatTitle,'id' => Crypt::encryptString($ArticleDepartment->id) ]) }}">{{$articleval_sub->title}}</a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    @php $count++; @endphp
+
+                                    @endforeach
+                                    @endforeach
+                                </ul>
+                            </aside>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <!-- page content End -->
+
+    <!-------------------------- footer ----------------------------->
+    <!-------------------------- footer ----------------------------->
+    @include('frontend.layouts.main_footer')
+
+</div>
+<!-- page wrapper End -->
+
+
+@include('frontend.layouts.search_scroll')
+
+<!-- JS
+		============================================ -->
+<!-- jQuery JS -->
+@include('frontend.layouts.include_scripts')
+
+@endsection

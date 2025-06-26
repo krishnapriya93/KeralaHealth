@@ -1,0 +1,179 @@
+@extends('frontend.layouts.main_header')
+<style>
+    .show-more-btn {
+        background: linear-gradient(135deg, #4caf50, #81c784);
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: block;
+        margin: 20px auto;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .show-more-btn:hover {
+        background: linear-gradient(135deg, #388e3c, #66bb6a);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        transform: translateY(-2px);
+    }
+
+    .show-more-btn .icon {
+        display: inline-block;
+        margin-right: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    .show-more-btn:hover .icon {
+        transform: rotate(180deg);
+    }
+</style>
+@section('content')
+
+<!-- page wrapper -->
+<div class="page-wrapper pbmit-bg-color-light">
+
+    <!-- Header Main Area -->
+    <!-- Header Main Area start Here -->
+    @include('frontend.layouts.main_menu')
+    <!-- Header Main Area End Here -->
+    <!-- Header Main Area End Here -->
+    <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper">
+        <div class="container">
+            <div class="pbmit-title-bar-content">
+                <div class="pbmit-title-bar-content-inner">
+                    <div class="pbmit-tbar">
+                        <div class="pbmit-tbar-inner container">
+                            <h1 class="pbmit-tbar-title">Financial Aid</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Title Bar End-->
+    <!-- page content -->
+    <div class="page-content">
+
+        <section class="site_content blog-details">
+            <div class="container">
+                <div class="row">
+             
+                    <div class="col-lg-9 blog-right-col">
+                        <article class="main-article">
+                            <div class="pbmit-ihbox-style-21">
+                                <div class="pbmit-ihbox-headingicon">
+                                    <div class="pbmit-ihbox-contents w-100">
+                    @php
+                        $count = 0;
+                        $shown = 0;
+                    @endphp
+
+                    {{-- Show first 5 --}}
+                    @foreach($FinancialAids as $FinancialAid)
+                        @foreach($FinancialAid->announcesub as $announcesub)
+                            @if($count < 5)
+                                <div class="news1">
+                                    <ul>
+                                        <li class="img-ico"><img src="{{ asset('assets/frontend/images/mic.png') }}" alt=""></li>
+                                        <li>
+                                            <p>{{ $announcesub->title }}</p>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <hr>
+                                @php $count++; @endphp
+                            @endif
+                        @endforeach
+                    @endforeach
+
+                    {{-- Hidden items --}}
+                    <div id="moreFinancialAid" style="display: none;">
+                        @foreach($FinancialAids as $FinancialAid)
+                            @foreach($FinancialAid->announcesub as $announcesub)
+                                @php $shown++; @endphp
+                                @if($shown > 5)
+                                    <div class="news1">
+                                        <ul>
+                                            <li class="img-ico"><img src="{{ asset('assets/frontend/images/mic.png') }}" alt=""></li>
+                                            <li>
+                                                <p>{{ $announcesub->title }}</p>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <hr>
+                                @endif
+                            @endforeach
+                        @endforeach
+                    </div>
+
+                    {{-- Show More Button --}}
+                    @if($shown > 5)
+                        <button class="show-more-btn" onclick="document.getElementById('moreFinancialAid').style.display='block'; this.style.display='none';">
+                            <span class="icon">+</span> Show More
+                        </button>
+                    @endif
+
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                 
+                     <div class="col-md-12 col-lg-3 blog-left-col">
+                        <aside class="sidebar">
+                            <aside class="widget widget-recent-post">
+                                <h2 class="widget-title">Related FinancialAid</h2>
+                                <ul class="recent-post-list">
+                                <li class="recent-post-list-li">
+                                    <div class="pbmit-rpw-content">
+                                        <span class="pbmit-rpw-title" style="display: inline-flex; align-items: center;">
+                                            <img src="{{asset('assets/frontend/images/expert-advice.png')}}" alt="icon" style="width:16px; height:16px; margin-right:6px;">
+                                            <a href="blog-details.html">Janani Shishu Suraksha Karikrama</a>
+                                        </span>
+                                    </div>
+                                </li>
+                                <li class="recent-post-list-li">
+                                    <div class="pbmit-rpw-content">
+                                        <span class="pbmit-rpw-title" style="display: inline-flex; align-items: center;">
+                                            <img src="{{asset('assets/frontend/images/expert-advice.png')}}" alt="icon" style="width:16px; height:16px; margin-right:6px;">
+                                            <a href="blog-details.html"> Janani Suraksha Yojana (JSY)</a>
+                                        </span>
+                                    </div>
+                                </li>
+                                
+                                </ul>
+                            </aside>
+                            
+                        </aside>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <!-- page content End -->
+
+    <!-------------------------- footer ----------------------------->
+
+    @include('frontend.layouts.main_footer')
+
+</div>
+<!-- page wrapper End -->
+
+
+@include('frontend.layouts.search_scroll')
+
+<!-- JS-->
+
+
+@include('frontend.layouts.include_scripts')
+
+@endsection

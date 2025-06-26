@@ -1,0 +1,83 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Redirect to HTTPS (optional, remove if not using HTTPS)
+    ##RewriteCond %{HTTPS} off
+    ##RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Handle Laravel routing
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# ////////////////////////////////////////////////
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews -Indexes
+    </IfModule>
+
+    RewriteEngine On
+
+    <IfModule mod_php8.c>
+        php_value upload_max_filesize 50M
+        php_value post_max_size 50M
+    </IfModule>
+
+#  #  RewriteCond %{HTTPS} !=on
+ ##   RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Handle Authorization Header
+    ##RewriteCond %{HTTP:Authorization} .
+   ## RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Redirect Trailing Slashes If Not A Folder...
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} (.+)/$
+    RewriteRule ^ %1 [L,R=301]
+
+    # Handle Front Controller...
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L]
+ 
+
+
+    # never deliver .git folders, .gitIgnore
+    RewriteRule ^(.*/)?\.git+ - [R=404,L]
+
+    # 2nd line of defense (if no mod_rewrite)
+    RedirectMatch 404 ^(.*/)?\.git+
+    RewriteRule ^404/?$ errors/404.html [NC]
+
+    RedirectMatch 403 ^(.*/)?\.git+
+    RewriteRule ^403/?$ errors/404.html [NC]
+
+    RedirectMatch 500 ^(.*/)?\.git+
+    RewriteRule ^500/?$ errors/404.html [NC]
+
+# Enable Error Documents
+# (404,File Not Found) | (403,Forbidden) | (500,Internal Server Error)
+   ErrorDocument 403 "access denied"
+    ErrorDocument 500 "access denied"
+</IfModule>
+
+# ////////////////////////////////////////////////////
+# Restrict directory listing
+Options -Indexes
+
+# Protect sensitive Laravel files and folders
+<Files .env>
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files composer.json>
+    Order allow,deny
+    Deny from all
+</Files>
+
+<Files artisan>
+    Order allow,deny
+    Deny from all
+</Files>
