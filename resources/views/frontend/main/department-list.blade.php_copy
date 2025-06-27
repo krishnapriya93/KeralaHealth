@@ -1,0 +1,164 @@
+@extends('frontend.layouts.main_header')
+
+@section('content')
+
+<!-- page wrapper -->
+<div class="page-wrapper pbmit-bg-color-light">
+
+    <!-- Header Main Area -->
+    <!-- Header Main Area start Here -->
+    @include('frontend.layouts.main_menu')
+    <!-- Header Main Area End Here -->
+    <!-- Header Main Area End Here -->
+    <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper">
+        <div class="container">
+            <div class="pbmit-title-bar-content">
+                <div class="pbmit-title-bar-content-inner">
+                    <div class="pbmit-tbar">
+                        <div class="pbmit-tbar-inner container">
+                            <h1 class="pbmit-tbar-title">Departments</h1>
+                        </div>
+                    </div>
+                    <!-- <div class="pbmit-breadcrumb">
+                                <div class="pbmit-breadcrumb-inner">
+                                    <span>
+                                        <a title="" href="#" class="home"><span>Xcare</span></a>
+                                    </span>
+                                    <span class="sep">
+                                        <i class="pbmit-base-icon-angle-double-right"></i>
+                                    </span>
+                                    <span><span class="post-root post post-post current-item">Dentist</span></span>
+                                    <span class="sep">
+                                        <i class="pbmit-base-icon-angle-double-right"></i>
+                                    </span>
+                                    <span><span class="post-root post post-post current-item"> The Most important Ventilator Equipment available</span></span>
+                                </div>
+                            </div> -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Title Bar End-->
+    <!-- page content -->
+    <div class="page-content">
+
+        <section class="section-lgx pbmit-sortable-yes">
+            <div class="container">
+                <div class="d-xl-flex align-items-center justify-content-between">
+                    <div class="pbmit-heading-subheading">
+                        <h2 class="pbmit-title">Departments</h2>
+                    </div>
+                    <div class="pbmit-sortable-list pbmit-sortable-list-style-1">
+                        <ul class="pbmit-sortable-list-ul">
+                            <li><a href="#" class="pbmit-sortable-link pbmit-selected" data-sortby="*">All</a></li>
+                            <li><a href="#" class="pbmit-sortable-link" data-sortby="health">Health Department</a></li>
+                            <li><a href="#" class="pbmit-sortable-link" data-sortby="ayush">Ayush Department</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="pbmit-element-posts-wrapper row">
+                    <!-- Add a data-category attribute to each article for easy filtering -->
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="health">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d1.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">National Health Mission</h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="health">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d1.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">Kerala Social Security
+                                    Mission </h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="ayush">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d3.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">Directorate of Health
+                                    Services</h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="health">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d4.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">Kerala Medical Services
+                                    Corporation Limited</h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="health">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d5.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">Kerala State Institute of
+                                    Health and Family Welfare </h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="ayush">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d7.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">Kerala State Health Systems
+                                    Resource Centre </h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="health">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d8.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">State Health Agency </h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <article class="pbmit-product-style-1 col-md-4 col-lg-3" data-category="ayush">
+                        <div class="product">
+                            <a href="{{ route('main.department-details') }}" class="woocommerce-LoopProduct-link woocommerce-loop-product__link">
+                                <img src="{{asset('assets/frontend/images/dept/d9.png')}}" class="attachment-woocommerce_thumbnail" alt="">
+                                <h2 class="woocommerce-loop-product__title">Kerala State AIDS
+                                    Control Society (KSACS)</h2
+                                    </a>
+                                <a href="{{ route('main.department-details') }}" class="button"></a>
+                        </div>
+                    </article>
+                    <!-- More articles... -->
+                </div>
+            </div>
+
+        </section>
+
+    </div>
+    <!-- page content End -->
+    <!-------------------------- footer ----------------------------->
+
+    @include('frontend.layouts.main_footer')
+
+</div>
+<!-- page wrapper End -->
+
+
+@include('frontend.layouts.search_scroll')
+
+<!-- JS
+		============================================ -->
+<!-- jQuery JS -->
+@include('frontend.layouts.include_scripts')
+
+@endsection

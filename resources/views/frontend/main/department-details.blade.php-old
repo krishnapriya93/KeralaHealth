@@ -1,0 +1,190 @@
+@extends('frontend.layouts.main_header')
+
+@section('content')
+
+
+<!-- page wrapper -->
+<div class="page-wrapper pbmit-bg-color-light">
+
+    <!-- Header Main Area -->
+    @include('frontend.layouts.main_menu')
+    <!-- Header Main Area End Here -->
+    <!-- Title Bar -->
+    <div class="pbmit-title-bar-wrapper">
+        <div class="container">
+            <div class="pbmit-title-bar-content">
+                <div class="pbmit-title-bar-content-inner">
+                    <div class="pbmit-tbar">
+                        <div class="pbmit-tbar-inner container">
+                            <h1 class="pbmit-tbar-title">Departments</h1>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Title Bar End-->
+    <!-- page content -->
+    <div class="page-content">
+
+        <section class="site_content blog-details">
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-9 pr-15 blog-right-col">
+                        <div class="pbmit-team-single-info">
+                            <div class="row">
+                                <div class="col-md-12 col-xl-3">
+                                    <div class="pbmit-sticky-cl">
+                                        <div class="pbmit-team-left-inner">
+                                            <div class="pbmit-featured-wrapper">
+                                                <img src="{{asset('assets/frontend/images/dept/d1.png')}}" class="img-fluid w-100" alt="" style="border-radius: 30px 30px 0 0;">
+                                            </div>
+                                            <div class="pbmit-team-detail">
+                                                <div class="pbmit-team-detail-inner">
+                                                    <div class="pbmit-team-summary">
+                                                        <h2 class="pbmit-team-title text-center">National Health Mission</h2>
+                                                    </div>
+                                                    <br>
+                                                    <a href="https://arogyakeralam.gov.in/" class="w-link"> https://arogybnhmdgyjtyjakeralam.gov.in/</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12 col-xl-9 bg-white br-30">
+                                    <article class="main-article p-3">
+                                        <div class="post blog-classic">
+                                            <div class="pbmit-heading animation-style1">
+                                                <h3 class="pbmit-title mb-2">Dolor sit, amet consectetur adipisicing elit. Ipsam!t, amet consectetur adipi</h3>
+                                            </div>
+                                            <div class="pbmit-blog-classic-inner">
+                                                <div class="pbmit-blog-meta pbmit-blog-meta-top">
+                                                    <span class="pbmit-meta pbmit-meta-date">
+                                                        <i class="pbmit-base-icon-calendar-3"></i>&nbsp;August 29, 2023
+                                                    </span>
+                                                    <span class="pbmit-meta pbmit-meta-author">
+                                                        <i class="pbmit-base-icon-user-3"></i>by admin
+                                                    </span>
+                                                    <span class="pbmit-meta pbmit-meta-comments pbmit-comment-bigger-than-zero">
+                                                        <i class="pbmit-base-icon-chat-3"></i>3 Comments
+                                                    </span>
+                                                </div>
+                                                <div class="pbmit-entry-content">
+                                                    <div class="square">
+                                                        <img src="{{asset('assets/frontend/images/child-care-about.jpg')}}" style="float: left; margin-right: 15px;" class="img-fluid w-50" alt="">
+                                                        <p class="pbmit-firstletter" style="text-align: justify;">
+                                                            Medical Futurist is one of the best online resources for learning about technology in the medical sphere. There’s a real sense skepticism uis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Sed ut perspiciatis unde in each post from medical doctor and geneticist Mesko, a blog covering new technologies targeted toward numerous specialties.
+                                                        </p>
+                                                        <p>If you run an internet search for medical blogs, you’ll come across hundreds of results. And figuring out which sources are reputable can take a lot of time. To help ease the process, we compiled this list of 55 of our favorite medical blogs everyone in the field can learn from Whether you’re, you’ve been a physician for years, or you simply want to know how make considering medical school well-informed decisions about your own health, there’s something on this list for everyone. Keep this list of medical blogs handy and the answers to your medical away.</p>
+                                                    </div>
+
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </article>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12 col-lg-3 blog-left-col">
+                        <aside class="widget">
+                            <div class="textwidget">
+                                <div class="download">
+                                    <div class="item-download">
+                                        <a href="#" target="_blank" rel="noopener noreferrer">
+
+                                            <span class="pbmit-download-content">
+                                                Go to Website
+                                            </span>
+                                            <span class="pbmit-download-item">
+                                                <img src="{{asset('assets/frontend/images/web-developer.gif')}}" width="40" height="40" alt="">
+                                            </span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </aside>
+                        <aside class="sidebar">
+                            <aside class="widget widget-recent-post">
+                                <h2 class="widget-title">Recent News</h2>
+                                <ul class="recent-post-list">
+                                    <li class="recent-post-list-li">
+                                        <a class="recent-post-thum" href="blog-details.html">
+                                            <img src="{{asset('assets/frontend/images/related.png')}}" class="img-fluid" alt="">
+                                        </a>
+                                        <div class="pbmit-rpw-content">
+                                            <span class="pbmit-rpw-date">
+                                                <a href="blog-details.html">August 29, 2023</a>
+                                            </span>
+                                            <span class="pbmit-rpw-title">
+                                                <a href="blog-details.html">What’s the reason so many older adults aren’t active?</a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <li class="recent-post-list-li">
+                                        <a class="recent-post-thum" href="blog-details.html">
+                                            <img src="{{asset('assets/frontend/images/related.png')}}" class="img-fluid" alt="">
+                                        </a>
+                                        <div class="pbmit-rpw-content">
+                                            <span class="pbmit-rpw-date">
+                                                <a href="blog-details.html">August 29, 2023</a>
+                                            </span>
+                                            <span class="pbmit-rpw-title">
+                                                <a href="blog-details.html">What’s the reason so many older adults aren’t active?</a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <li class="recent-post-list-li">
+                                        <a class="recent-post-thum" href="blog-details.html">
+                                            <img src="{{asset('assets/frontend/images/related.png')}}" class="img-fluid" alt="">
+                                        </a>
+                                        <div class="pbmit-rpw-content">
+                                            <span class="pbmit-rpw-date">
+                                                <a href="blog-details.html">August 29, 2023</a>
+                                            </span>
+                                            <span class="pbmit-rpw-title">
+                                                <a href="blog-details.html">What’s the reason so many older adults aren’t active?</a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                    <li class="recent-post-list-li">
+                                        <a class="recent-post-thum" href="blog-details.html">
+                                            <img src="{{asset('assets/frontend/images/related.png')}}" class="img-fluid" alt="">
+                                        </a>
+                                        <div class="pbmit-rpw-content">
+                                            <span class="pbmit-rpw-date">
+                                                <a href="blog-details.html">August 29, 2023</a>
+                                            </span>
+                                            <span class="pbmit-rpw-title">
+                                                <a href="blog-details.html">What’s the reason so many older adults aren’t active?</a>
+                                            </span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </aside>
+                        </aside>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+    <!-- page content End -->
+
+    <!-------------------------- footer ----------------------------->
+    <!-------------------------- footer ----------------------------->
+    @include('frontend.layouts.main_footer')
+
+</div>
+<!-- page wrapper End -->
+
+
+@include('frontend.layouts.search_scroll')
+
+<!-- JS
+		============================================ -->
+<!-- jQuery JS -->
+@include('frontend.layouts.include_scripts')
+
+@endsection
