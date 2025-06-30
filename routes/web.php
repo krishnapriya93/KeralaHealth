@@ -12,6 +12,7 @@ use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EditorController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DashboardAdminController;
+use App\Http\Controllers\KaleidoscopeController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -90,8 +91,10 @@ Route::get('refreshCaptcha', [LoginController::class, 'refreshCaptcha'])->name('
 Route::get('logout', [LoginController::class, 'logout'])->name('logout');
 Route::post('/articleckimageupload', [CkeditorController::class, 'articleckimageupload'])->name('articleckimageupload');
 
-
-
+//kaleidoscope
+Route::get('/keralahealth/kaleidoscope', [KaleidoscopeController::class, 'kaleidoscope'])->name('main.kaleidoscope');  
+Route::post('/keralahealth/kaleidoscope-children', [KaleidoscopeController::class, 'getKaleidoscopeChildren'])->name('main.kaleidoscope.children');
+Route::post('/district/institutions', [KaleidoscopeController::class, 'getInstitutionsByDistrict'])->name('district.institutions');
 
 
 /*DASHBOARD----GOPIKA*/
@@ -463,8 +466,13 @@ Route::group(['middleware' => ['auth', 'App\Http\Middleware\Siteadmin', 'prevent
    Route::get('/siteadmin/pollresult/{id}', [SiteadminController::class, 'pollresult'])->name('siteadmin.pollresult');
    Route::get('/siteadmin/statuspoll/{id}', [SiteadminController::class, 'statuspoll'])->name('siteadmin.statuspoll');
 
-
+   //institution
+   Route::get('/institution', [SiteadminController::class, 'institution'])->name('siteadmin.institution');
+   Route::post('/import', [SiteadminController::class, 'import'])->name('import.users');  
+   Route::get('/kaleidoscope', [SiteadminController::class, 'kaleidoscope'])->name('kaleidoscope');  
+   Route::post('/kaleidoscope-children', [SiteadminController::class, 'getKaleidoscopeChildren'])->name('kaleidoscope.children');
 });
+
 
 Route::group(['middleware' => ['auth', 'App\Http\Middleware\ACSadmin', 'prevent-back-history', 'CORS', 'XSS']], function () {
 

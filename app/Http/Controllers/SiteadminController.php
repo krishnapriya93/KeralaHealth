@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\InstitutionImport;
 
 use App\Models\Component;
 use App\Models\Componentpermission;
@@ -50,7 +52,7 @@ use App\Models\Sitecontrollabel;
 use App\Models\Sitecontrollabelsub;
 use App\Models\Mainmenusub;
 use App\Models\Article;
-use App\Models\Widgetposition;
+use App\Models\Institution;
 use App\Models\Articletype;
 use App\Models\Articlesub;
 use App\Models\Submenu;
@@ -130,11 +132,9 @@ class SiteadminController extends Controller
         //     $resultdata = Logo::with(['logotypes' => function($query){
         //         $query->select('id','title');
         //    }])->get();
-        $data       = Article::with(['articleval_sub' => function ($query) {
-       
-        }])->with(['articletypeval' => function($q){
+        $data       = Article::with(['articleval_sub' => function ($query) {}])->with(['articletypeval' => function ($q) {
             $q->with('articletype_sub');
-        }])->where('users_id',$role_id)->get();
+        }])->where('users_id', $role_id)->get();
         // $widgetPosition=Widgetposition::get();
         $keywordtags = Keywordtag::with(['keytag_sub' => function ($query) {}])->get();
         $usertype = usertype::where('delet_flag', 0)->whereIn('id', [8, 9])->where('status_id', 1)->get();
@@ -182,7 +182,7 @@ class SiteadminController extends Controller
         // $sbu_type=Auth::user()->sbutype;
         // dd($sbu_type);
 
-        $offices = Office::with(['office_sub' => function ($query) {}])->where('office_view_flag',1)->get();
+        $offices = Office::with(['office_sub' => function ($query) {}])->where('office_view_flag', 1)->get();
 
         $arttype =   Articletype::with(['articletype_sub' => function ($query) {
             $query->where('languageid', 1);
@@ -191,7 +191,7 @@ class SiteadminController extends Controller
 
 
         // $editF='A';
-        return view('backend.siteadmin.Article.createarticle', compact('breadcrumbarr', 'navbar', 'user', 'language', 'data', 'arttype', 'keywordtags', 'usertype','offices'));
+        return view('backend.siteadmin.Article.createarticle', compact('breadcrumbarr', 'navbar', 'user', 'language', 'data', 'arttype', 'keywordtags', 'usertype', 'offices'));
     }
 
     public function articleidencrypt(Request $request, $encid = null)
@@ -207,20 +207,20 @@ class SiteadminController extends Controller
     {
         try {
             $officeId = $request->office_id;
-    
+
             // Step 1: Fetch the Office
             $office = Office::with('office_sub')->find($officeId);
-   
+
             if (!$office || empty($office->submenus)) {
                 return response()->json(['html' => '<p>No submenus found for this office.</p>']);
             }
-    
+
             // Step 2: Parse submenu IDs
             $submenuIds = array_map('intval', explode(',', $office->submenus));
-          
+
             // Optional: Get language ID from request or session (default to 1)
             $languageId = $request->input('language_id', 1);
-    
+
             // Step 3: Fetch related department submenus with translation
             $departmentSubmenus = DepartmentSubmenu::with([
                 'dep_submenu' => function ($query) use ($languageId) {
@@ -230,43 +230,42 @@ class SiteadminController extends Controller
             dd($departmentSubmenus);
             // Step 4: Generate HTML
             $html = '';
-    
+
             foreach ($departmentSubmenus as $submenu) {
                 $localized = $submenu->dep_submenu;
                 $title = $localized ? $localized->title : 'Untitled';
-    
+
                 $html .= '<label for="department_submenu_id_' . $submenu->id . '">' . e($title) . '</label>';
                 $html .= '<select class="form-control select2 mt-1" name="department_submenu_id_' . $submenu->id . '" id="department_submenu_id_' . $submenu->id . '">';
                 $html .= '<option value="">Select an option</option>';
                 $html .= '<option value="' . $submenu->id . '">' . e($title) . '</option>';
                 $html .= '</select><br>';
             }
-    
+
             return response()->json(['html' => $html]);
-    
         } catch (\Exception $e) {
             // Log the error for debugging
             \Log::error('depsubmenus error: ' . $e->getMessage());
-    
+
             return response()->json(['error' => 'Something went wrong while loading submenus.'], 500);
         }
     }
     public function depsubmenus(Request $request)
-        {
-            try {
-                // $office_id = $request->office_id;
+    {
+        try {
+            // $office_id = $request->office_id;
 
-                // $depsubmenus = Office::with(['office_sub' => function ($query) {
-     
-                // }])->where('id',$office_id)->get();
-                $office_id = $request->office_id;
+            // $depsubmenus = Office::with(['office_sub' => function ($query) {
 
-                // Step 1: Fetch office with its submenus
-                $office = Office::with('office_sub')->find($office_id);
-          
-                $submenuIds = array_map('intval', explode(',', $office->submenus));
+            // }])->where('id',$office_id)->get();
+            $office_id = $request->office_id;
 
-$submenus = [];
+            // Step 1: Fetch office with its submenus
+            $office = Office::with('office_sub')->find($office_id);
+
+            $submenuIds = array_map('intval', explode(',', $office->submenus));
+
+            $submenus = [];
 
             foreach ($submenuIds as $id) {
                 $submenu = DepartmentSubmenu::with(['dep_submenu' => function ($query) {
@@ -278,28 +277,24 @@ $submenus = [];
                 }
             }
 
-// Create a single dropdown
-$html = '<select class="form-control select2 mt-1" name="department_submenu_id">';
-$html .= '<option value="">Select an option</option>';
+            // Create a single dropdown
+            $html = '<select class="form-control select2 mt-1" name="department_submenu_id">';
+            $html .= '<option value="">Select an option</option>';
 
-foreach ($submenus as $submenu) {
-    $localized = $submenu->dep_submenu->first(); // Get localized title
-    $title = $localized ? $localized->title : 'Untitled';
+            foreach ($submenus as $submenu) {
+                $localized = $submenu->dep_submenu->first(); // Get localized title
+                $title = $localized ? $localized->title : 'Untitled';
 
-    $html .= '<option value="' . $submenu->id . '">' . $title . '</option>';
-}
-
-$html .= '</select>';
-
-return $html;
-
-                
-                
-
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Encryption failed'], 400);
+                $html .= '<option value="' . $submenu->id . '">' . $title . '</option>';
             }
+
+            $html .= '</select>';
+
+            return $html;
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Encryption failed'], 400);
         }
+    }
     public function storearticle(Request $request)
     {
         // dd($request->all());
@@ -346,8 +341,8 @@ return $html;
             DB::beginTransaction();
 
             $officeData = implode(',', $request->input('office', []));
-        
-         
+
+
             if ($request->usertype == null) {
                 $usertype = 0;
             } else {
@@ -372,7 +367,7 @@ return $html;
                 }
             }
 
-            if($officeData){
+            if ($officeData) {
                 $dataarr = new Article([
                     'articletype_id' => \Crypt::decryptString($request->articleType),
                     'usertype' => $usertype,
@@ -383,8 +378,7 @@ return $html;
                     'front_view_flag' => $request->front_view_flag,
                     'service_url' => $request->service_url,
                 ]);
-
-            }else{
+            } else {
                 $dataarr = new Article([
                     'articletype_id' => \Crypt::decryptString($request->articleType),
                     'usertype' => $usertype,
@@ -395,22 +389,21 @@ return $html;
                     'service_url' => $request->service_url,
                 ]);
             }
-        
+
             // dd($dataarr);
             $res = $dataarr->save();
             $art_id = $dataarr->id;
-            if($officeData){
-                foreach($request->office as $office)
-                    {
-                        $articledep = new ArticleDepartment([
-                            'articleid' => $art_id,
-                            'article_status' => 0,
-                            'officeId' => $office, // If it's a multiple select field
-                        ]);
-                    }
+            if ($officeData) {
+                foreach ($request->office as $office) {
+                    $articledep = new ArticleDepartment([
+                        'articleid' => $art_id,
+                        'article_status' => 0,
+                        'officeId' => $office, // If it's a multiple select field
+                    ]);
+                }
             }
             if ($res) {
-             
+
                 $lang = Language::where('status_id', 1)->get();
                 $i = 0;
                 // dd($request->con_title);
@@ -443,22 +436,20 @@ return $html;
                     if ($i < count($lang)) {
                         $i++;
                     }
-
                 }
                 // dd($request->tags_id);
                 if (isset($request->tags_id)) {
                     $firstValues = [];  // This will hold the values at index 0
                     $secondValues = []; // This will hold the values at index 1
                     $lengKey = count($request->tags_id);
-                    
-                   for($k=1;$k<=$lengKey;$k++) {
-                             $langtas=implode(',',$request->tags_id[$k]);
-                             $dataarrkey = array(
-                                'tags_id'=>$langtas
-                             );
-                             $res1 = Articlesub::where('articleid', '=', $art_id)->where('languageid', '=', $k)->update($dataarrkey);
-                    }
 
+                    for ($k = 1; $k <= $lengKey; $k++) {
+                        $langtas = implode(',', $request->tags_id[$k]);
+                        $dataarrkey = array(
+                            'tags_id' => $langtas
+                        );
+                        $res1 = Articlesub::where('articleid', '=', $art_id)->where('languageid', '=', $k)->update($dataarrkey);
+                    }
                 }
                 $success = "Saved successfully";
                 DB::commit();
@@ -489,39 +480,39 @@ return $html;
         // $depsubmenus = Office::with(['office_sub' => function ($query) {
         //     $query->with('lang');
         // }])->where('id',$request->office_id)->first();
-     
+
         // $submenuIds = explode(',', $this->submenus);
         $office = Office::with('office_sub')->find($officeId);
-        
+
         $submenuIds = array_map('intval', explode(',', $office->submenus));
-     
+
         $submenus = [];
 
-            foreach ($submenuIds as $id) {
-                $submenu = DepartmentSubmenu::with(['dep_submenu' => function ($query) {
-                    $query->where('languageid', 1); // or dynamic language ID
-                }])->find($id);
+        foreach ($submenuIds as $id) {
+            $submenu = DepartmentSubmenu::with(['dep_submenu' => function ($query) {
+                $query->where('languageid', 1); // or dynamic language ID
+            }])->find($id);
 
-                if ($submenu) {
-                    $submenus[] = $submenu;
-                }
+            if ($submenu) {
+                $submenus[] = $submenu;
             }
-           
-            // Create a single dropdown
-            $html = '<select class="form-control select2 mt-1" name="department_submenu_id">';
-            $html .= '<option value="">Select an option</option>';
+        }
 
-            foreach ($submenus as $submenu) {
+        // Create a single dropdown
+        $html = '<select class="form-control select2 mt-1" name="department_submenu_id">';
+        $html .= '<option value="">Select an option</option>';
+
+        foreach ($submenus as $submenu) {
             $localized = $submenu->dep_submenu->first(); // Get localized title
             $title = $localized ? $localized->title : 'Untitled';
 
             $html .= '<option value="' . $submenu->id . '">' . $title . '</option>';
-            }
+        }
 
-            $html .= '</select>';
-          
-            return $html;
-      
+        $html .= '</select>';
+
+        return $html;
+
         if (!$submenus) {
             return response('Office not found.', 404);
         }
@@ -537,34 +528,34 @@ return $html;
             'department_submenu_id' => 'integer',
             'article_id' => 'integer',
         ]);
-    
+
 
 
         $res = Article::where('id', $request->article_id)
-                    ->update([
-                        'submenu' => $request->department_submenu_id,
-                    ]);
-                // dd($requ
+            ->update([
+                'submenu' => $request->department_submenu_id,
+            ]);
+        // dd($requ
 
-    
+
         return response()->json(['message' => 'Submenus updated successfully']);
     }
-    
+
 
     public function deletearticle(Request $request, $encid)
     {
-       
+
         $id = \Crypt::decryptString($encid);
         try {
             $imageName = Articlesub::where('articleid', $id)->select('file')->get();
             foreach ($imageName as $img) {
                 Storage::disk('myfile')->delete('/uploads/articles/' . $img->file);
             }
-           
+
             $dataartSub = Articlesub::where('articleid', $id)->delete();
-           
+
             $dataEdit = Article::destroy($id);
-           
+
             $msg = "Deleted successfully";
 
             return redirect('/siteadmin/articlelist')->with(['delete' => $msg]);
@@ -573,37 +564,37 @@ return $html;
         }
     }
 
-     /*Status Status*/
-     public function statusarticle($id)
-     {
-         $id = Crypt::decryptString($id);
-         $status = Article::where('id', $id)->value('status_id');
- 
-         DB::beginTransaction();
-         if ($status == 1) {
-             $uparr = array(
-                 'status_id' => 0,
-             );
-         } else {
-             $uparr = array(
-                 'status_id' => 1,
-             );
-         }
+    /*Status Status*/
+    public function statusarticle($id)
+    {
+        $id = Crypt::decryptString($id);
+        $status = Article::where('id', $id)->value('status_id');
 
-         $res = Article::where('id', $id)->update($uparr);
+        DB::beginTransaction();
+        if ($status == 1) {
+            $uparr = array(
+                'status_id' => 0,
+            );
+        } else {
+            $uparr = array(
+                'status_id' => 1,
+            );
+        }
 
-         $edit_f = '';
-         if ($res) {
+        $res = Article::where('id', $id)->update($uparr);
+
+        $edit_f = '';
+        if ($res) {
             DB::commit();
             return redirect()->route('articlelist')->with('success', 'status change successfully');
-         } else {
-             DB::rollback();
-             return back()->withErrors('Not deleted ');
-         }
-     }
+        } else {
+            DB::rollback();
+            return back()->withErrors('Not deleted ');
+        }
+    }
 
-     public function getofficedetails(Request $request)
-     {
+    public function getofficedetails(Request $request)
+    {
         $sessionbil = 1;
         $officeIds = $request->office_id; // Array of office IDs
         $offices = collect(); // Initialize an empty collection
@@ -634,11 +625,11 @@ return $html;
 
         // Now, $offices contains all the office details in a single variable.
 
-  
-     }
+
+    }
 
     public function article_check_title_unique(Request $request)
-    { 
+    {
         $title = $request->input('title');
 
         // $isUnique = !Articlesub::where('title', 'LIKE', $title)->exists();
@@ -649,7 +640,7 @@ return $html;
     public function editarticle(Request $request, $encid = null)
     {
         $id = \Crypt::decryptString($encid);
-       
+
         // $id=$encid;
         $breadcrumb = array(
             0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
@@ -670,16 +661,12 @@ return $html;
         //     $resultdata = Logo::with(['logotypes' => function($query){
         //         $query->select('id','title');
         //    }])->get();
-        $dataEdit       = Article::with(['articleval_sub' => function ($query) {
+        $dataEdit       = Article::with(['articleval_sub' => function ($query) {}])->with(['articledep' => function ($q1) {}])->where('id', $id)->first();
+        // dd($dataEdit);
+        $depsubmenus = DepartmentSubmenu::with(['dep_submenu' => function ($query) {
+            $query->where('languageid', 1);
+        }])->get();
 
-        }])->with(['articledep' => function($q1){
-
-        }])->where('id', $id)->first();
-// dd($dataEdit);
-            $depsubmenus = DepartmentSubmenu::with(['dep_submenu' => function ($query) {
-                $query->where('languageid', 1);
-            }])->get();
-    
         $data       = Article::with(['articleval_sub' => function ($query) {}])->get();
 
         $editF = 'E';
@@ -692,9 +679,9 @@ return $html;
             $query->where('languageid', 1);
         }])->where('status_id', 1)->where('delet_flag', 0)->get();
 
-        $offices = Office::with(['office_sub' => function ($query) {}])->where('office_view_flag',1)->get();
+        $offices = Office::with(['office_sub' => function ($query) {}])->where('office_view_flag', 1)->get();
 
-        return view('backend.siteadmin.Article.createarticle', compact('breadcrumbarr', 'depsubmenus','navbar', 'user', 'language', 'data', 'arttype', 'usertype', 'keywordtags', 'dataEdit', 'editF','offices'));
+        return view('backend.siteadmin.Article.createarticle', compact('breadcrumbarr', 'depsubmenus', 'navbar', 'user', 'language', 'data', 'arttype', 'usertype', 'keywordtags', 'dataEdit', 'editF', 'offices'));
     }
     public function updatearticle(Request $request)
     {
@@ -780,46 +767,43 @@ return $html;
             }
             // $officeDataarray = implode(',', $request->input('departId', [])); // Convert array to comma-separated string
             $IncludeDep = $request->departId;
-// dd($IncludeDep);
-            if($officeData)
-            {
+            // dd($IncludeDep);
+            if ($officeData) {
                 $officeArray = explode(',', $officeData);
-                
-// dd($officeArray);
-                $checkoffice = ArticleDepartment::where('articleid',$id)->get();
+
+                // dd($officeArray);
+                $checkoffice = ArticleDepartment::where('articleid', $id)->get();
 
                 if ($checkoffice->isNotEmpty()) {
-                  ArticleDepartment::where('articleid', $id)->delete();
+                    ArticleDepartment::where('articleid', $id)->delete();
                 }
 
-                foreach($officeArray  as $officedata)
-                {
-                  ArticleDepartment::create([
-                    'articleid' => $id,
-                    'officeid' => $officedata,
-                  ]);
+                foreach ($officeArray  as $officedata) {
+                    ArticleDepartment::create([
+                        'articleid' => $id,
+                        'officeid' => $officedata,
+                    ]);
                 }
             }
 
-                if($officeData){
-                    $dataarr = array(
-                        'articletype_id' => \Crypt::decryptString($request->articleType),
-                        'users_id' => Auth::user()->id,
-                        'officeId' => $officeData, // If it's a multiple select field
-                        'front_view_flag' => $request->front_view_flag,
-                        'service_url' => $request->service_url,
-                    );
-                   
-                    }else{
-                        $dataarr = array(
-                            'articletype_id' => \Crypt::decryptString($request->articleType),
-                            'users_id' => Auth::user()->id,
-                            'front_view_flag' => $request->front_view_flag,
-                            'service_url' => $request->service_url,
-                        );
-                    }
+            if ($officeData) {
+                $dataarr = array(
+                    'articletype_id' => \Crypt::decryptString($request->articleType),
+                    'users_id' => Auth::user()->id,
+                    'officeId' => $officeData, // If it's a multiple select field
+                    'front_view_flag' => $request->front_view_flag,
+                    'service_url' => $request->service_url,
+                );
+            } else {
+                $dataarr = array(
+                    'articletype_id' => \Crypt::decryptString($request->articleType),
+                    'users_id' => Auth::user()->id,
+                    'front_view_flag' => $request->front_view_flag,
+                    'service_url' => $request->service_url,
+                );
+            }
             // dd($homePage_status);
-   
+
             // dd($dataarr);
             $res = Article::where('id', '=', $id)->update($dataarr);
             if ($res) {
@@ -871,17 +855,15 @@ return $html;
                             $firstValues = [];  // This will hold the values at index 0
                             $secondValues = []; // This will hold the values at index 1
                             $lengKey = count($request->tags_id);
-                            
-                           for($k=1;$k<=$lengKey;$k++) {
-                                     $langtas=implode(',',$request->tags_id[$k]);
-                                     $dataarrkey = array(
-                                        'tags_id'=>$langtas
-                                     );
-                                     $res1 = Articlesub::where('articleid', '=', $id)->where('languageid', '=', $k)->update($dataarrkey);
-                            }
-    
-                        }
 
+                            for ($k = 1; $k <= $lengKey; $k++) {
+                                $langtas = implode(',', $request->tags_id[$k]);
+                                $dataarrkey = array(
+                                    'tags_id' => $langtas
+                                );
+                                $res1 = Articlesub::where('articleid', '=', $id)->where('languageid', '=', $k)->update($dataarrkey);
+                            }
+                        }
                     } else {
                         DB::rollback();
 
@@ -1007,10 +989,9 @@ return $html;
             $leng = count($request->sel_lang);
             $filename = array();
 
-            if(isset($request->text_view_flag))
-            {
+            if (isset($request->text_view_flag)) {
                 $text_view_flag = $request->text_view_flag;
-            }else{
+            } else {
                 $text_view_flag = 0;
             }
             $storeinfo = new Banner([
@@ -1171,18 +1152,17 @@ return $html;
 
             $leng = count($request->sel_lang);
             // dd($request->all());
-            if(isset($request->text_view_flag))
-            {
+            if (isset($request->text_view_flag)) {
                 $text_view_flag = $request->text_view_flag;
-            }else{
+            } else {
                 $text_view_flag = 0;
             }
             $res = Banner::where('id', $request->hidden_id)
-                    ->update([
-                        'userid' => Auth::user()->id,
-                        'text_view_flag' => $text_view_flag,
-                        'url' => $request->url,
-                    ]);
+                ->update([
+                    'userid' => Auth::user()->id,
+                    'text_view_flag' => $text_view_flag,
+                    'url' => $request->url,
+                ]);
             for ($i = 0; $i < count($request->sel_lang); $i++) {
                 $res = Banner_sub::where('bannerid', $request->hidden_id)->where('languageid', $request->sel_lang[$i])
                     ->update([
@@ -1602,11 +1582,11 @@ return $html;
         $Navid = Componentpermission::where('url', '/' . $route)->select('id')->first();
 
 
- $departments = Office::with(['office_sub' => function ($query) {
+        $departments = Office::with(['office_sub' => function ($query) {
             $query->where('languageid', 1);
         }])->get();
         //  dd($route);
-        return view('backend.siteadmin.Gallery.creategallery', compact('breadcrumbarr', 'language', 'navbar', 'user', 'Gallerytype', 'Navid','departments'));
+        return view('backend.siteadmin.Gallery.creategallery', compact('breadcrumbarr', 'language', 'navbar', 'user', 'Gallerytype', 'Navid', 'departments'));
     }
 
     /*Store Gallery*/
@@ -1756,7 +1736,7 @@ return $html;
         $pgmdet = Gallery::where('id', $id)->first();
 
         $files = $request->file;
-        
+
         $imageName = time() . rand() . '.' . $files->extension();
         $request->file('file')->storeAs('/assets/backend/uploads/Galleryitem', $imageName, 'myfile');
         // Get the original file name
@@ -1902,11 +1882,11 @@ return $html;
         $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
 
         $departments = Office::with(['office_sub' => function ($query) {
-                    $query->where('languageid', 1);
-                }])->get();
-          $edit_f = 'E';      
+            $query->where('languageid', 1);
+        }])->get();
+        $edit_f = 'E';
         $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
-        return view('backend.siteadmin.Gallery.creategallery', compact('breadcrumbarr', 'Gallerytype', 'resusertype', 'edit_f', 'keydata', 'navbar', 'user','departments'));
+        return view('backend.siteadmin.Gallery.creategallery', compact('breadcrumbarr', 'Gallerytype', 'resusertype', 'edit_f', 'keydata', 'navbar', 'user', 'departments'));
     }
 
     public function updategallery(Request $request)
@@ -4306,11 +4286,9 @@ return $html;
     /*Logo*/
     public function announcements()
     {
-        $data = Announcement::with(['announcesub' => function ($query) {
-
-        }])->with(['announcetype' => function($q){
-            $q->with(['announcetypesub' => function($q2){
-                $q2->where('languageid',1);
+        $data = Announcement::with(['announcesub' => function ($query) {}])->with(['announcetype' => function ($q) {
+            $q->with(['announcetypesub' => function ($q2) {
+                $q2->where('languageid', 1);
             }]);
         }])->get();
 
@@ -4400,8 +4378,7 @@ return $html;
             $leng = count($request->sel_lang);
             $filename = array();
             DB::beginTransaction();
-            if($request->e_date)
-            {
+            if ($request->e_date) {
                 $storeinfo = new Announcement([
                     'userid' => Auth::user()->id,
                     'url' => $request->url,
@@ -4412,7 +4389,7 @@ return $html;
                     'e_date' => $request->e_date,
                     'schemetypeId' => $request->schemetype
                 ]);
-            }else{
+            } else {
                 $storeinfo = new Announcement([
                     'userid' => Auth::user()->id,
                     'url' => $request->url,
@@ -4420,11 +4397,11 @@ return $html;
                     'status_id' => 1,
                     'announcementtype' => $request->announcemttype,
                     's_date' => $request->s_date,
-                     'schemetypeId' => $request->schemetype
+                    'schemetypeId' => $request->schemetype
                 ]);
             }
 
-        //    dd($storeinfo);
+            //    dd($storeinfo);
 
             $res = $storeinfo->save();
             $announcmt_id = DB::getPdo()->lastInsertId();
@@ -4976,13 +4953,12 @@ return $html;
         $Navid = Componentpermission::where('url', '/' . $route)->select('id')->first();
 
         $maxValue = Mainmenu::max('orderno');
-        if($maxValue == 'null')
-        {          
+        if ($maxValue == 'null') {
             $orderno = 1;
-        }else{
-            $orderno = $maxValue+1;
+        } else {
+            $orderno = $maxValue + 1;
         }
-        
+
         // $article       = Article::with(['articleval_sub'=>function($query){
         //     $query->where('languageid',1);
         // }])->get();
@@ -5233,17 +5209,17 @@ return $html;
             $query->where('languageid', 1);
         }])->where('status_id', 1)->get();
 
-            // $arttype = Article::where('status_id', 1)
-            // ->with('articleval_sub', function ($query) use ($sessionbil) {
-            //     $query->where('languageid', $sessionbil);
-            // })
-            // ->whereHas('articledep', function ($q1) use ($id) {
-            //     $q1->where('officeId', $id);
-            // })
-            // ->with(['articledep']) // No need to filter again in with()
-            // ->orderBy('id', 'DESC')
-            // ->get();
-        
+        // $arttype = Article::where('status_id', 1)
+        // ->with('articleval_sub', function ($query) use ($sessionbil) {
+        //     $query->where('languageid', $sessionbil);
+        // })
+        // ->whereHas('articledep', function ($q1) use ($id) {
+        //     $q1->where('officeId', $id);
+        // })
+        // ->with(['articledep']) // No need to filter again in with()
+        // ->orderBy('id', 'DESC')
+        // ->get();
+
 
 
         // dd($arttype);
@@ -5641,7 +5617,7 @@ return $html;
 
         return response()->json($mainmenu_sbu);
     }
-   
+
     /*store submenu*/
     public function storesubmenu(Request $request)
     {
@@ -6777,18 +6753,16 @@ return $html;
 
         $language   = Language::where('delet_flag', 0)->orderBy('name')->get();
 
-        $data       = BOD::with(['bodsub' => function ($query) {
-
-        }])->with(['designation' => function($q1){
-            $q1->with(['des_sub' => function($q2){
-                $q2->where('languageid',1);
+        $data       = BOD::with(['bodsub' => function ($query) {}])->with(['designation' => function ($q1) {
+            $q1->with(['des_sub' => function ($q2) {
+                $q2->where('languageid', 1);
             }]);
         }])->get();
 
         $designations = Designation::with(['des_sub' => function ($query) {
-            $query->where('languageid',1);
+            $query->where('languageid', 1);
         }])->get();
-   
+
         return view('backend.siteadmin.BOD.bod', compact('breadcrumbarr', 'navbar', 'user', 'language', 'data', 'designations'));
     }
 
@@ -6806,14 +6780,12 @@ return $html;
 
         $language   = Language::where('delet_flag', 0)->orderBy('name')->get();
 
-        $data       = BOD::with(['bodsub' => function ($query) {
-
-        }])->get();
+        $data       = BOD::with(['bodsub' => function ($query) {}])->get();
 
         $designations = Designation::with(['des_sub' => function ($query) {
-            $query->where('languageid',1);
+            $query->where('languageid', 1);
         }])->get();
-   
+
         return view('backend.siteadmin.BOD.bodCreate', compact('breadcrumbarr', 'navbar', 'user', 'language', 'data', 'designations'));
     }
 
@@ -6875,7 +6847,7 @@ return $html;
                         'chief_officers_flag' => $chief_officers,
                         'photo' => $imageName,
                         'user_id' => Auth::user()->id,
-                        'desigId' =>$request->designation,
+                        'desigId' => $request->designation,
                         'status' => 1
                     ]);
 
@@ -6999,7 +6971,7 @@ return $html;
         $keydata = BOD::with(['bodsub' => function ($query) {
             $query->with(['lang_sel' => function ($query) {}]);
         }])->where('id', $id)->first();
-      
+
         $error = '';
         $data = BOD::with(['bodsub' => function ($query) {
             // $query->where('delet_flag',0);
@@ -7022,14 +6994,14 @@ return $html;
         $Navid = Componentpermission::where('url', '/' . $route)->select('id')->first();
         //   dd($keydata);
         $designations = Designation::with(['des_sub' => function ($query) {
-            $query->where('languageid',1);
+            $query->where('languageid', 1);
         }])->get();
-        return view('backend.siteadmin.BOD.createbod', compact('breadcrumbarr', 'navbar', 'user', 'language', 'data', 'designation', 'editF', 'keydata','designations'));
+        return view('backend.siteadmin.BOD.createbod', compact('breadcrumbarr', 'navbar', 'user', 'language', 'data', 'designation', 'editF', 'keydata', 'designations'));
     }
 
     public function updateBOD(Request $request)
     {
-    
+
         $validator = Validator::make(
             $request->all(),
             [
@@ -7125,7 +7097,7 @@ return $html;
                         'officenumber' => $request->officenumber,
                         'mobilenumber' => $request->mobilenumber,
                         'desig_flag' => $desig_flag,
-                        'desigId' =>$request->designation,
+                        'desigId' => $request->designation,
                         'chief_officers_flag' => $chief_officers,
                         'photo' => $imageName,
                     );
@@ -7193,9 +7165,9 @@ return $html;
     {
         $language = Language::where('delet_flag', 0)->orderBy('name')->get();
         $wellnessTipTypes = wellnessTipType::with(['wellnessTipTypesub' => function ($query) {
-                         $query->with('lang_sel');
-                         $query->where('languageid',1);
-                    }])->get();
+            $query->with('lang_sel');
+            $query->where('languageid', 1);
+        }])->get();
 
         $role_id = Auth::user()->role_id;
 
@@ -7211,7 +7183,7 @@ return $html;
         $url = url()->previous();
         $route = app('router')->getRoutes($url)->match(app('request')->create($url))->getName();
         $Navid = Componentpermission::where('url', '/' . $route)->select('id')->first();
-        return view('backend.siteadmin.WellnessTips.createWellnessTip', compact('breadcrumbarr', 'language', 'navbar', 'user', 'Navid','wellnessTipTypes'));
+        return view('backend.siteadmin.WellnessTips.createWellnessTip', compact('breadcrumbarr', 'language', 'navbar', 'user', 'Navid', 'wellnessTipTypes'));
     }
     public function storeWellnessTips(Request $request)
     {
@@ -7262,7 +7234,7 @@ return $html;
             $wellnesstip_id = DB::getPdo()->lastInsertId();
 
             if ($wellnesstip_id) {
-               
+
                 for ($i = 0; $i < $leng; $i++) {
                     $store_sub_info = new wellnessTipSub([
                         'languageid' => $request->sel_lang[$i],
@@ -7305,8 +7277,8 @@ return $html;
 
         $wellnessTipTypes = wellnessTipType::with(['wellnessTipTypesub' => function ($query) {
             $query->with('lang_sel');
-            $query->where('languageid',1);
-       }])->get();
+            $query->where('languageid', 1);
+        }])->get();
         // dd($keydata);
         $language = Language::where('delet_flag', 0)->orderBy('name')->get();
 
@@ -7321,7 +7293,7 @@ return $html;
         $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
         $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
 
-        return view('backend.siteadmin.WellnessTips.createWellnessTip', compact('data', 'edit_f', 'error', 'keydata', 'breadcrumbarr', 'language', 'navbar', 'user','wellnessTipTypes'));
+        return view('backend.siteadmin.WellnessTips.createWellnessTip', compact('data', 'edit_f', 'error', 'keydata', 'breadcrumbarr', 'language', 'navbar', 'user', 'wellnessTipTypes'));
     }
 
     public function updatecreateWellnessTips(Request $request)
@@ -7354,9 +7326,9 @@ return $html;
             DB::beginTransaction();
 
             $res_main = wellnessTip::where('id', $request->hidden_id)
-            ->update([
-                'wellnessTipTypeId' => $request->wellnesstype,
-            ]);
+                ->update([
+                    'wellnessTipTypeId' => $request->wellnesstype,
+                ]);
 
             $leng = count($request->sel_lang);
             // dd($request->all());
@@ -7406,14 +7378,13 @@ return $html;
 
         $edit_f = '';
         if ($res) {
-           
-                DB::commit();
-                return redirect()->route('siteadmin.WellnessTips')->with('success', 'Deleted successfully');
-            } else {
-                DB::rollback();
-                return back()->withErrors('Not deleted ');
-            }
-        
+
+            DB::commit();
+            return redirect()->route('siteadmin.WellnessTips')->with('success', 'Deleted successfully');
+        } else {
+            DB::rollback();
+            return back()->withErrors('Not deleted ');
+        }
     }
     public function deletecreateWellnessTips($id)
     {
@@ -7444,7 +7415,7 @@ return $html;
     {
         $role_id = Auth::user()->role_id;
 
-        
+
         $breadcrumb = array(
             0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
             1 => array('title' => 'Award', 'message' => 'Award', 'status' => 1)
@@ -7510,16 +7481,14 @@ return $html;
             $date = date('dmYH:i:s');
 
 
-            if (isset($request->imageUpload)) 
-            {
+            if (isset($request->imageUpload)) {
                 $image = $request->file('imageUpload');
 
                 $imageUpload = time() . 'Award' . $image->getClientOriginalName();
 
                 $imagePath2 = $image->storeAs('/assets/backend/uploads/Award', $imageUpload, 'myfile');
-              
             }
-            
+
 
             $storeinfo = new Award([
                 'user_id' => Auth::user()->id,
@@ -7540,7 +7509,7 @@ return $html;
                         'languageid' => $request->sel_lang[$i],
                         'title' => $request->title[$i],
                         'awardid' => $awardid,
-                        'description' =>$request->description[$i]
+                        'description' => $request->description[$i]
                     ]);
                     $storedetails_sub = $store_sub_info->save();
                 }
@@ -7561,7 +7530,7 @@ return $html;
         $id = Crypt::decryptString($id);
         $edit_f = 'E';
         $keydata = Award::with(['awardsub' => function ($query) {
-                $query->with('lang_sel');
+            $query->with('lang_sel');
         }])->where('id', $id)->first();
 
         $error = '';
@@ -7578,7 +7547,7 @@ return $html;
         $url = url()->previous();
         $route = app('router')->getRoutes($url)->match(app('request')->create($url))->getName();
         $Navid = Componentpermission::where('url', '/' . $route)->select('id')->first();
-        return view('backend.siteadmin.Award.createaward', compact('breadcrumbarr', 'language', 'navbar', 'user', 'Navid','keydata','edit_f'));
+        return view('backend.siteadmin.Award.createaward', compact('breadcrumbarr', 'language', 'navbar', 'user', 'Navid', 'keydata', 'edit_f'));
     }
     public function updateAward(Request $request)
     {
@@ -7602,29 +7571,28 @@ return $html;
             return back()->withInput()->withErrors($validator->errors());
         }
         try {
-            
+
             DB::beginTransaction();
-          
-            if (isset($request->imageUpload))
-            {
-           
-                    $image = $request->file('iconUpload');
 
-                    $imageUpload = time() . 'Award' . $image->getClientOriginalName();
+            if (isset($request->imageUpload)) {
 
-                    $imagePath1 = $image->storeAs('/assets/backend/uploads/Award', $imageUpload, 'myfile');
-                
-                
+                $image = $request->file('iconUpload');
+
+                $imageUpload = time() . 'Award' . $image->getClientOriginalName();
+
+                $imagePath1 = $image->storeAs('/assets/backend/uploads/Award', $imageUpload, 'myfile');
+
+
                 $res_main = Award::where('id', $request->hidden_id)
-                ->update([
-                    'file' => $imageUpload,
-                    'date' => $request->date,
-                ]);
-            }else{
+                    ->update([
+                        'file' => $imageUpload,
+                        'date' => $request->date,
+                    ]);
+            } else {
                 $res_main = Award::where('id', $request->hidden_id)
-                ->update([
-                    'date' => $request->date,
-                ]);
+                    ->update([
+                        'date' => $request->date,
+                    ]);
             }
 
 
@@ -7634,7 +7602,7 @@ return $html;
                         'languageid' => $request->sel_lang[$i],
                         'title' => $request->title[$i],
                         'awardid' => $request->hidden_id,
-                        'description' =>$request->description[$i]
+                        'description' => $request->description[$i]
                     ]);
             }
 
@@ -7650,7 +7618,7 @@ return $html;
                 $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
                 $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
                 $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
-        
+
                 $url = url()->previous();
                 $route = app('router')->getRoutes($url)->match(app('request')->create($url))->getName();
                 $Navid = Componentpermission::where('url', '/' . $route)->select('id')->first();
@@ -7661,8 +7629,8 @@ return $html;
                 $galitemcnt = count($galitem);
                 $usertype_id = Auth::user()->role_id;
                 // dd($galitemcnt);
-            DB::commit();
-            return view('backend.siteadmin.Award.uploadaward', compact('breadcrumbarr', 'navbar', 'user', 'Navid','awardId', 'galitem', 'galdet', 'galitemcnt', 'usertype_id'));
+                DB::commit();
+                return view('backend.siteadmin.Award.uploadaward', compact('breadcrumbarr', 'navbar', 'user', 'Navid', 'awardId', 'galitem', 'galdet', 'galitemcnt', 'usertype_id'));
             } else {
                 DB::rollback();
                 return back()->withErrors('Not Updated ');
@@ -7679,7 +7647,7 @@ return $html;
         $validator = Validator::make(
             $request->all(),
             [
-               'file' => 'required|mimes:jpg,jpeg,png',
+                'file' => 'required|mimes:jpg,jpeg,png',
             ],
             [
 
@@ -7698,13 +7666,13 @@ return $html;
         $pgmdet = Award::where('id', $id)->first();
         $files = $request->file('file'); // Retrieve the uploaded file
         $imageName = time() . rand() . '.' . $files->extension(); // Generate a unique name
-        
+
         // Store file in 'public/assets/backend/uploads/Awarditem'
         $files->storeAs('assets/backend/uploads/Awarditem', $imageName, 'public');
-        
+
         // Get the file path (if needed)
         $path = asset('storage/assets/backend/uploads/Awarditem/' . $imageName);
-        
+
 
         $formdata = [
             'awardid' => $id,
@@ -7716,7 +7684,7 @@ return $html;
         $res = AwardItem::create($formdata);
         $resusertype = $usertype_id;
         // dd($res->id."");
-  
+
         if ($res) {
             $breadcrumb = array(
                 0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
@@ -7772,16 +7740,16 @@ return $html;
     {
         // dd($id);
         // $id = Crypt::decryptString($id);
-       
+
         DB::beginTransaction();
         $imageName = AwardItem::where('awardid', $id)->select('image')->get();
-     
+
         foreach ($imageName as $img) {
-            Storage::disk('myfile')->delete('/assets/backend/uploads/Awarditem/'.$img->file);
+            Storage::disk('myfile')->delete('/assets/backend/uploads/Awarditem/' . $img->file);
         }
-    
+
         $res_sub = AwardItem::where('id', $id)->delete();
-// dd($res_sub);
+        // dd($res_sub);
         if ($res_sub) {
             DB::commit();
             // return back()->with('success', 'Action completed successfully!')->with('reload', true);
@@ -7793,7 +7761,6 @@ return $html;
 
             return back()->withErrors('Not deleted ');
         }
-
     }
 
     public function deleteAward($id)
@@ -7868,7 +7835,7 @@ return $html;
         $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
         $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
         $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
-        return view('backend.siteadmin.HerooftheMonth.HOMlist', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user','offices'));
+        return view('backend.siteadmin.HerooftheMonth.HOMlist', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user', 'offices'));
     }
     public function createHeroOfMonth()
     {
@@ -7894,7 +7861,7 @@ return $html;
         $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
         $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
         $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
-        return view('backend.siteadmin.HerooftheMonth.createHOM', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user','offices'));
+        return view('backend.siteadmin.HerooftheMonth.createHOM', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user', 'offices'));
     }
     public function storeHeroOfMonth(Request $request)
     {
@@ -7956,7 +7923,7 @@ return $html;
                 } //forloop
                 // dd($path);
             } //ifend
-        
+
             $breadcrumb = array(
                 0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
                 1 => array('title' => 'List Hero of the Month', 'message' => 'List Hero of the Month', 'status' => 0, 'link' => '/siteadmin/HerooftheMonth'),
@@ -7979,27 +7946,27 @@ return $html;
     {
         $role_id = Auth::user()->role_id;
 
-            $breadcrumb = array(
-                0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
-                1 => array('title' => 'Office details', 'message' => 'Office details', 'status' => 1)
-            );
+        $breadcrumb = array(
+            0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
+            1 => array('title' => 'Office details', 'message' => 'Office details', 'status' => 1)
+        );
 
 
-            $data = OfficeDetail::with(['officedetailsub' => function ($query) {
-                $query->where('languageid', 1);
-            }])->with(['officemain' => function ($q1) {
-                $q1->with(['office_sub' => function($q3){
-                    $q3->where('languageid', 1);
-                  }]);
-            }])->get();
+        $data = OfficeDetail::with(['officedetailsub' => function ($query) {
+            $query->where('languageid', 1);
+        }])->with(['officemain' => function ($q1) {
+            $q1->with(['office_sub' => function ($q3) {
+                $q3->where('languageid', 1);
+            }]);
+        }])->get();
 
-            $language = Language::where('delet_flag', 0)->orderBy('name')->get();
+        $language = Language::where('delet_flag', 0)->orderBy('name')->get();
 
 
-            $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
-            $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
-            $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
-            return view('backend.siteadmin.Officedetails.Officedetaillist', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user'));
+        $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
+        $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
+        $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
+        return view('backend.siteadmin.Officedetails.Officedetaillist', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user'));
     }
     public function createofficedetail()
     {
@@ -8024,7 +7991,7 @@ return $html;
         $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
         $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
         $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
-        return view('backend.siteadmin.Officedetails.createOfficedetail', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user','offices'));
+        return view('backend.siteadmin.Officedetails.createOfficedetail', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user', 'offices'));
     }
 
     public function storeofficedetails(Request $request)
@@ -8084,7 +8051,7 @@ return $html;
                 } //forloop
                 // dd($path);
             } //ifend
-   
+
             DB::commit();
             return redirect()->route('siteadmin.officedetails')->with('success', 'Created successfully');
         } catch (ModelNotFoundException $exception) {
@@ -8117,9 +8084,7 @@ return $html;
         $edit_f = 'E';
 
         $keydata = OfficeDetail::with(['officedetailsub' => function ($query) {
-            $query->with(['lang' => function ($q2){
-
-            }]);
+            $query->with(['lang' => function ($q2) {}]);
         }])->where('id', $id)->first();
 
         $role_type = Auth::user()->role_id;
@@ -8128,7 +8093,7 @@ return $html;
             $query->where('languageid', 1);
         }])->get();
 
-        return view('backend.siteadmin.Officedetails.createOfficedetail', compact('breadcrumbarr','language', 'navbar', 'user', 'offices', 'usertype', 'keydata', 'edit_f'));
+        return view('backend.siteadmin.Officedetails.createOfficedetail', compact('breadcrumbarr', 'language', 'navbar', 'user', 'offices', 'usertype', 'keydata', 'edit_f'));
     }
     public function updateofficedetails(Request $request)
     {
@@ -8163,21 +8128,20 @@ return $html;
             // dd($request->all());
             $leng = count($request->sel_lang);
             // dd($request->all());
-            if(isset($request->text_view_flag))
-            {
+            if (isset($request->text_view_flag)) {
                 $text_view_flag = $request->text_view_flag;
-            }else{
+            } else {
                 $text_view_flag = 0;
             }
             $res = OfficeDetail::where('id', $request->hidden_id)
-                    ->update([
-                        'officeId' => $request->officeid,
-                        'websiteurl' => $request->weburl,
-                    ]);
+                ->update([
+                    'officeId' => $request->officeid,
+                    'websiteurl' => $request->weburl,
+                ]);
             for ($i = 0; $i < count($request->sel_lang); $i++) {
                 $res = OfficeDetailSub::where('officedetailId', $request->hidden_id)->where('languageid', $request->sel_lang[$i])
                     ->update([
-                     'languageid' => $request->sel_lang[$i],
+                        'languageid' => $request->sel_lang[$i],
                         'mission' => $request->mission[$i],
                         'vision' => $request->vision[$i],
                         'description' => $request->description[$i],
@@ -8313,10 +8277,9 @@ return $html;
 
         $leng = count($request->sel_lang);
 
-        if(isset($request->text_view_flag))
-        {
+        if (isset($request->text_view_flag)) {
             $text_view_flag = $request->text_view_flag;
-        }else{
+        } else {
             $text_view_flag = 0;
         }
 
@@ -8327,36 +8290,36 @@ return $html;
                 'question_type' => $request->question_type,
                 'status_id' => 1,
             ]);
-   
+
             $res = $storeinfo->save();
             $question_id = DB::getPdo()->lastInsertId();
-         
+
 
             if ($question_id) {
                 $total_questions = count($request->title);
                 $answers = [];
                 $sub_answers = [];
-           
+
                 // Loop through questions
                 for ($i = 0; $i < $total_questions; $i++) {
-               
+
                     $store_sub_info = new SurveyQuestionSub([
                         'language_id' => $request->sel_lang[$i], // Language ID
-                        'title' => $request->title[$i], 
-                        'description' => $request->con_title[$i], 
+                        'title' => $request->title[$i],
+                        'description' => $request->con_title[$i],
                         'parent_question_id' => $question_id, // Linking to main question
                     ]);
-               
+
                     $storedetails_sub = $store_sub_info->save();
                     $sub_question_id = DB::getPdo()->lastInsertId();
-    
+
                     if (!empty($request->answers[$i])) {
                         $answers[] = [
                             'question_id' => $sub_question_id,
                             'created_at' => now(),
                             'updated_at' => now(),
                         ];
-    dd($request->all());
+                        dd($request->all());
                         // If the answer has sub-answers
                         if (!empty($request->sub_answers[$i])) {
                             foreach ($request->sub_answers[$i] as $sub_answer) {
@@ -8371,18 +8334,18 @@ return $html;
                         }
                     }
                 }
-    
+
                 // Bulk insert answers
                 if (!empty($answers)) {
                     SurveyAnswers::insert($answers);
                 }
-    
+
                 // Bulk insert sub-answers
                 if (!empty($sub_answers)) {
                     SurveyAnswerSub::insert($sub_answers);
                 }
             }
-    
+
             DB::commit();
             return response()->json(['success' => 'Survey stored successfully!']);
         } catch (\Exception $e) {
@@ -8394,195 +8357,309 @@ return $html;
     {
 
         $breadcrumb = array(
-                0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/Cmdadminhome'),
-                1 => array('title' => 'Survey', 'message' => 'Survey', 'status' => 1)
-             );
-        
-        $data = Pollquestion::with(['Pollquestionsub' =>function($query){
+            0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/Cmdadminhome'),
+            1 => array('title' => 'Survey', 'message' => 'Survey', 'status' => 1)
+        );
+
+        $data = Pollquestion::with(['Pollquestionsub' => function ($query) {
 
             // $query->select('alternatetext','subtitle','title')->where('delet_flag',0);
-        }])->with(['pollanswers' =>function($query1){
-                $query1->with(['pollanswersub'=>function($query2){
+        }])->with(['pollanswers' => function ($query1) {
+            $query1->with(['pollanswersub' => function ($query2) {}]);
+        }])->where('user_id', Auth::user()->id)->get();
 
-                }]);
-        }])->where('user_id',Auth::user()->id)->get();
-    
-        
-        $language = Language::where('delet_flag',0)->orderBy('name')->get();
 
-      
+        $language = Language::where('delet_flag', 0)->orderBy('name')->get();
+
+
         $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
-        $navbar=app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
-        $user=app('App\Http\Controllers\Commonfunctions')->userinfo();
-        return view('backend.siteadmin.Poll.polllist',compact('data','breadcrumbarr','language','navbar','user'));
+        $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
+        $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
+        return view('backend.siteadmin.Poll.polllist', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user'));
     }
 
 
 
-    
+
 
     public function createpoll()
     {
         $breadcrumb = array(
             0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/Cmdadminhome'),
             1 => array('title' => 'Poll', 'message' => 'Poll', 'status' => 1)
-         );
-    
-    $data = Pollquestion::with(['Pollquestionsub' =>function($query){
-        // $query->select('alternatetext','subtitle','title')->where('delet_flag',0);
-    }])->where('user_id',Auth::user()->id)->get();
-    // dd($data);
-    
-    $language = Language::where('delet_flag',0)->orderBy('name')->get();
+        );
 
-  
-    $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
-    $navbar=app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
-    $user=app('App\Http\Controllers\Commonfunctions')->userinfo();
-    return view('backend.siteadmin.Poll.createpoll',compact('data','breadcrumbarr','language','navbar','user'));
+        $data = Pollquestion::with(['Pollquestionsub' => function ($query) {
+            // $query->select('alternatetext','subtitle','title')->where('delet_flag',0);
+        }])->where('user_id', Auth::user()->id)->get();
+        // dd($data);
 
+        $language = Language::where('delet_flag', 0)->orderBy('name')->get();
+
+
+        $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
+        $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
+        $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
+        return view('backend.siteadmin.Poll.createpoll', compact('data', 'breadcrumbarr', 'language', 'navbar', 'user'));
     }
 
     public function storepoll(Request $request)
     {
-   //   dd($request->all());
+        //   dd($request->all());
         $validator = Validator::make(
             $request->all(),
             [
                 'question.*'       => app('App\Http\Controllers\Commonfunctions')->getEntitlereg(),
                 'enganswer.*'       => 'required',
                 'malanswer.*'       => 'required',
-           ],[
+            ],
+            [
                 'question.required' => 'question is required',
                 'question.min' => 'question  minimum lenght is 2',
                 'question.max' => 'question  maximum lenght is 50',
                 'question.regex' => 'Invalid characters not allowed for question',
 
                 'enganswer.required' => 'English answer is required',
-                
+
                 'enganswer.regex' => 'Invalid characters not allowed for English answer',
 
                 'malanswer.required' => 'Malayalam answer is required',
-             
+
                 'malanswer.regex' => 'Invalid characters not allowed for Malayalam answer',
 
+            ]
+        );
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator->errors());
+        }
+        try {
+
+            DB::beginTransaction();
+
+            if ($request->multichoice)
+                $multichoice = 1;
+            else
+                $multichoice = 0;
+
+            // dd($multichoice);
+            $storepollquestion = new Pollquestion([
+                'user_id' => Auth::user()->id,
+                'multi_choice_flag' => $multichoice,
+                'status_id' => 1,
             ]);
-            if ($validator->fails()) {
-                return back()->withInput()->withErrors($validator->errors());
+            // dd($storepollquestion);
+            $pollquestion_res = $storepollquestion->save();
+
+            $pollquestionId = DB::getPdo()->lastInsertId();
+            $leng = count($request->sel_lang);
+            // dd($pollquestionId);
+            if ($pollquestion_res) {
+                for ($i = 0; $i < $leng; $i++) {
+                    $storepollquestion_sub = new Pollquestionsub([
+                        'languageid' => $request->sel_lang[$i],
+                        'question' => $request->question[$i],
+                        'question_mainid' => $pollquestionId,
+                    ]);
+
+                    $storepollquestion_res = $storepollquestion_sub->save();
+                } //forloopend
+                $pollquestionSubId = DB::getPdo()->lastInsertId();
             }
-                try{
-                  
-                    DB::beginTransaction();
-        
-                        if($request->multichoice)
-                            $multichoice=1;
-                        else
-                            $multichoice=0;
-                       
-                            // dd($multichoice);
-                    $storepollquestion=new Pollquestion([
-                                                'user_id'=>Auth::user()->id,
-                                                'multi_choice_flag'=>$multichoice,
-                                                'status_id'=>1,
-                                            ]);
-                                            // dd($storepollquestion);
-                    $pollquestion_res = $storepollquestion->save(); 
-        
-                    $pollquestionId = DB::getPdo()->lastInsertId();
-                    $leng = count($request->sel_lang);
-                    // dd($pollquestionId);
-                    if($pollquestion_res)
-                    {
-                        for($i=0;$i<$leng;$i++){
-                            $storepollquestion_sub=new Pollquestionsub([
-                                'languageid'=>$request->sel_lang[$i],
-                                'question' =>$request->question[$i],
-                                'question_mainid' => $pollquestionId,
-                            ]);
-                
-                            $storepollquestion_res=$storepollquestion_sub->save();     
-                         }//forloopend
-                         $pollquestionSubId = DB::getPdo()->lastInsertId();
-                    }
-                    
-                    if($pollquestionSubId)
-                    {
-                        $storepollAnswer=new Pollanswer([
-                            'user_id'=>Auth::user()->id,
-                            'question_mainid'=>$pollquestionId,
-                            'status_id'=>1,
-                        ]);
-                        $pollAnswer_res = $storepollAnswer->save(); 
-                        $pollAnswerId = DB::getPdo()->lastInsertId();
-                    }
-                    
-                    $enganswer = count($request->enganswer);
-                  
-                    $malanswer = count($request->malanswer);
-                    if($pollAnswerId)
-                    {
-                       
-                        for($i=0;$i<$enganswer;$i++){
-                            $storepollanswer_sub1=new Pollanswersub([
-                                'languageid'=>1,
-                                'answer' =>$request->enganswer[$i],
-                                'answer_mainid' => $pollAnswerId,
-                            ]);
-                            $storepollquestion_res=$storepollanswer_sub1->save();     
-                         }//forloopend
-                         for($i=0;$i<$malanswer;$i++){
-                            $storepollanswer_sub2=new Pollanswersub([
-                                'languageid'=>2,
-                                'answer' =>$request->malanswer[$i],
-                                'answer_mainid' => $pollAnswerId,
-                            ]);
-                            $storepollquestion_res=$storepollanswer_sub2->save();     
-                         }//forloopend
-                         $pollanswerSubId = DB::getPdo()->lastInsertId();
-                    }
-                   if($pollanswerSubId)
-                   {
-                    DB::commit();
-                    return redirect()->route('siteadmin.polllist')->with('success','created successfully');
-                    
-                  }else{
-                      DB::rollback(); 
-                      return back()->withErrors('Not created ');
-                   }
-        
-                } catch (ModelNotFoundException $exception) {
-                \LogActivity::addToLog($exception->getMessage(),'error');
-                $data = \LogActivity::logLatestItem();
-                return Redirect::back()->withInput()->withErrors('Please contact admin; the error code is ERROR' . $data->id);
-      }
+
+            if ($pollquestionSubId) {
+                $storepollAnswer = new Pollanswer([
+                    'user_id' => Auth::user()->id,
+                    'question_mainid' => $pollquestionId,
+                    'status_id' => 1,
+                ]);
+                $pollAnswer_res = $storepollAnswer->save();
+                $pollAnswerId = DB::getPdo()->lastInsertId();
+            }
+
+            $enganswer = count($request->enganswer);
+
+            $malanswer = count($request->malanswer);
+            if ($pollAnswerId) {
+
+                for ($i = 0; $i < $enganswer; $i++) {
+                    $storepollanswer_sub1 = new Pollanswersub([
+                        'languageid' => 1,
+                        'answer' => $request->enganswer[$i],
+                        'answer_mainid' => $pollAnswerId,
+                    ]);
+                    $storepollquestion_res = $storepollanswer_sub1->save();
+                } //forloopend
+                for ($i = 0; $i < $malanswer; $i++) {
+                    $storepollanswer_sub2 = new Pollanswersub([
+                        'languageid' => 2,
+                        'answer' => $request->malanswer[$i],
+                        'answer_mainid' => $pollAnswerId,
+                    ]);
+                    $storepollquestion_res = $storepollanswer_sub2->save();
+                } //forloopend
+                $pollanswerSubId = DB::getPdo()->lastInsertId();
+            }
+            if ($pollanswerSubId) {
+                DB::commit();
+                return redirect()->route('siteadmin.polllist')->with('success', 'created successfully');
+            } else {
+                DB::rollback();
+                return back()->withErrors('Not created ');
+            }
+        } catch (ModelNotFoundException $exception) {
+            \LogActivity::addToLog($exception->getMessage(), 'error');
+            $data = \LogActivity::logLatestItem();
+            return Redirect::back()->withInput()->withErrors('Please contact admin; the error code is ERROR' . $data->id);
+        }
     }
     public function deletepoll($id)
     {
-        $id= Crypt::decryptString($id);
+        $id = Crypt::decryptString($id);
 
         DB::beginTransaction();
- 
-         $res_sub1= Pollquestionsub::where('question_mainid',$id)->delete();
-       
-         $res= Pollquestion::findOrFail($id)->delete();
-         $qId= Pollanswer::where('question_mainid',$id)->first('id');
+
+        $res_sub1 = Pollquestionsub::where('question_mainid', $id)->delete();
+
+        $res = Pollquestion::findOrFail($id)->delete();
+        $qId = Pollanswer::where('question_mainid', $id)->first('id');
         //  dd($qId->id);
-         $res_sub3=Pollanswersub::where('answer_mainid',$qId->id)->delete(); 
+        $res_sub3 = Pollanswersub::where('answer_mainid', $qId->id)->delete();
         //  dd($res_sub3);
-        $res_sub2= Pollanswer::where('question_mainid',$id)->delete();  
-       
-        
-       
-        if($res_sub2)
-        {
-         DB::commit();
-         return redirect()->route('siteadmin.polllist')->with('delete','Deleted successfully');
-         
-       }else{
-           DB::rollback(); 
-           return back()->withErrors('Not Deleted ');
+        $res_sub2 = Pollanswer::where('question_mainid', $id)->delete();
+
+
+
+        if ($res_sub2) {
+            DB::commit();
+            return redirect()->route('siteadmin.polllist')->with('delete', 'Deleted successfully');
+        } else {
+            DB::rollback();
+            return back()->withErrors('Not Deleted ');
+        }
+    }
+    public function institution()
+    {
+        $breadcrumb = array(
+            0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
+            1 => array('title' => 'Institution', 'message' => 'Institution', 'status' => 1)
+        );
+
+        // $data = Institution::get();
+
+        $data = Institution::get();
+
+
+        $districts = $data->pluck('name_of_district');
+        $counts = $data->pluck('count');
+        $language = Language::where('delet_flag', 0)->orderBy('name')->get();
+
+
+        $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
+        $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
+        $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
+        return view('backend.siteadmin.institution.institutionlist', compact('districts', 'counts', 'data', 'breadcrumbarr', 'language', 'navbar', 'user'));
+
+
+        // return view('backend.siteadmin.institution.institutionlist',compact('data','breadcrumbarr','language','navbar','user'));
+    }
+    // public function kaleidoscope(Request $request)
+    // {
+    //     $institutions = DB::table('institutions')
+    //         ->select('name_of_district as district', DB::raw('count(*) as count'))
+    //         ->groupBy('district')
+    //         ->get();
+
+    //     $districts = $institutions->pluck('district');
+    //     $counts = $institutions->pluck('count');
+    //     $language = Language::where('delet_flag', 0)->orderBy('name')->get();
+    //     $breadcrumb = array(
+    //         0 => array('title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'),
+    //         1 => array('title' => 'Institution', 'message' => 'Institution', 'status' => 1)
+    //     );
+
+    //     $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
+    //     $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
+    //     $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
+
+    //     return view('backend.siteadmin.institution.kaleidoscope', compact('districts', 'counts','breadcrumbarr','navbar','user'));
+    // }
+    public function kaleidoscope()
+    {
+        $districts = DB::table('institutions')
+            ->select('name_of_district as id')
+            ->distinct()
+            ->get();
+
+        $nodes = [];
+        foreach ($districts as $district) {
+            // Prefix type to id for uniqueness
+            $nodeId = 'district_' . $district->id;
+            $nodes[] = [
+                'id' => $nodeId,
+                'label' => $district->id,
+                'level' => 0,
+                'type' => 'district'
+            ];
         }
 
+        $breadcrumb = [
+            ['title' => 'Home', 'message' => 'Home', 'status' => 0, 'link' => '/siteadminhome'],
+            ['title' => 'Institution', 'message' => 'Institution', 'status' => 1]
+        ];
+        $breadcrumbarr = app('App\Http\Controllers\Commonfunctions')->bread_crump_maker($breadcrumb);
+        $navbar = app('App\Http\Controllers\Commonfunctions')->componentpermissionsetng();
+        $user = app('App\Http\Controllers\Commonfunctions')->userinfo();
+
+        return view('backend.siteadmin.institution.kaleidoscope', compact('nodes', 'breadcrumbarr', 'navbar', 'user'));
     }
 
+   public function getKaleidoscopeChildren(Request $request)
+{
+    $parentId = $request->input('id'); // e.g. district_Kozhikode
+    $type = $request->input('type');   // Only 'district' is used
+    $parentValue = preg_replace('/^[a-z]+_/', '', $parentId);
+
+    if ($type !== 'district') {
+        return response()->json(['nodes' => [], 'edges' => []]);
+    }
+
+    $institutions = DB::table('institutions')
+        ->where('name_of_district', $parentValue)
+        ->select('name_of_the_institution as id')
+        ->distinct()
+        ->get();
+
+    $nodes = [];
+    $edges = [];
+
+    foreach ($institutions as $institution) {
+        if (empty($institution->id)) continue;
+
+        $childNodeId = 'institution_' . $institution->id;
+        $nodes[] = [
+            'id' => $childNodeId,
+            'label' => $institution->id,
+            'type' => 'institution',
+            'level' => 1
+        ];
+        $edges[] = [
+            'from' => $parentId,
+            'to' => $childNodeId
+        ];
+    }
+
+    return response()->json(['nodes' => $nodes, 'edges' => $edges]);
+}
+
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv'
+        ]);
+
+        Excel::import(new InstitutionImport, $request->file('file'));
+
+        return back()->with('success', 'Users imported successfully!');
+    }
 }
